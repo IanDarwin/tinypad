@@ -9,6 +9,8 @@ https://learningtree.com/471[Learning Tree's Introductory Java Course].
 
 The icons are a hodgepodge from 
 
-.https://freeiconshop.com/icon/
-.https://findicons.com/
-.the _Java Look and Feel Guidelines_ download file _jlfgr.jar_.
+. https://freeiconshop.com/icon/
+. https://findicons.com/
+. the _Java Look and Feel Guidelines_ download file _jlfgr.jar_.
+
+As with all free software, use at own risk.
