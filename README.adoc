@@ -1,0 +1,14 @@
+= tinypad a tiny Notepad/textpad style editor in Java
+
+Well, it all fits in one source file, so you know it isn't going to displace TextPad or NotePad++.
+
+== Origins
+
+Some of this code is adapted from an earlier editor used in the GUI chapter of
+https://learningtree.com/471[Learning Tree's Introductory Java Course].
+
+The icons are a hodgepodge from 
+
+.https://freeiconshop.com/icon/
+.https://findicons.com/
+.the _Java Look and Feel Guidelines_ download file _jlfgr.jar_.
