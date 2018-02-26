@@ -102,9 +102,8 @@ public class TinyPad extends JFrame {
 		// Don't close automatically, WindowCloser will exit when done.
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter() {
-			// Delegate all work to exit();
 			public void windowClosing(WindowEvent e) {
-					exit();
+				doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 			}
 		});
 
@@ -114,7 +113,13 @@ public class TinyPad extends JFrame {
 		JMenu fileMenu = new JMenu("File");
 
 		JMenuItem newMenuItem = new JMenuItem("New");
-		newMenuItem.setEnabled(false);
+		newMenuItem.addActionListener(e-> { doIfNoUnsavedChanges(() -> {
+			mTextArea.setText("");
+			knownFile = null;
+			setUnsavedChanges(false);
+			});
+		});
+		fileMenu.add(newMenuItem);
 
 		JMenuItem openMenuItem = new JMenuItem("Open...");
 		openMenuItem.addActionListener(openActionListener);
@@ -127,11 +132,15 @@ public class TinyPad extends JFrame {
 		fileMenu.addSeparator();
 		
 		JMenuItem closeMenuItem = new JMenuItem("Close");
-		closeMenuItem.addActionListener(e-> { exit(); });
+		closeMenuItem.addActionListener(e-> { 
+			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
+		});
 		fileMenu.add(closeMenuItem);
 
 		JMenuItem exitMenuItem = new JMenuItem("Exit");
-		exitMenuItem.addActionListener(e-> { exit(); });
+		exitMenuItem.addActionListener(e-> { 
+			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
+		});
 		fileMenu.add(exitMenuItem);
 
 		myMenuBar.add(fileMenu);
@@ -139,13 +148,13 @@ public class TinyPad extends JFrame {
 
 		// Setup the toolbar
 		JToolBar toolBar = new JToolBar();
-		ImageIcon openIcon = new ImageIcon(getClass().getResource("/images/open-128x128.png"));
+		ImageIcon openIcon = new ImageIcon(getClass().getResource("/images/open-64x64.png"));
 		JButton openButton = new JButton(openIcon);
 		openButton.setToolTipText("Open");
 		openButton.addActionListener(openActionListener);
 		toolBar.add(openButton);
 
-		ImageIcon saveIcon = new ImageIcon(getClass().getResource("/images/save-128x128.png"));
+		ImageIcon saveIcon = new ImageIcon(getClass().getResource("/images/save-64x64.png"));
 		JButton saveButton = new JButton(saveIcon);
 		saveButton.setToolTipText("Save");
 		saveButton.addActionListener(saveActionListener);
@@ -217,7 +226,7 @@ public class TinyPad extends JFrame {
 	 *  Check for unsaved changes; if so, prompt. 
 	 *  When approved, hide the window, disposes resources, and exit.
 	 */
-	public void exit() {
+	public void doIfNoUnsavedChanges(Runnable r) {
 		if (unsavedChanges) {
 			int ret = JOptionPane.showOptionDialog(TinyPad.this, 
 					"You have unsaved Changes!", "Warning",
@@ -241,24 +250,23 @@ public class TinyPad extends JFrame {
 				throw new IllegalStateException("Unexpected: " + ret);
 			}
 		}
-		setVisible(false);
-		dispose();
-		System.exit(0);
+		r.run();
 	}
 
 	/**
 	 *  This code allows the user to select a file.
 	 */
 	ActionListener openActionListener = (e) -> {
+		doIfNoUnsavedChanges(() -> {
+			// show the open dialog
+			int ret = mFileChooser.showOpenDialog(TinyPad.this);
 
-		// show the open dialog
-		int ret = mFileChooser.showOpenDialog(TinyPad.this);
-
-		// retrieve the file name selected by the user
-		if (ret == JFileChooser.APPROVE_OPTION) {
-			File file = mFileChooser.getSelectedFile();
-			open(file);
-		}
+			// retrieve the file name selected by the user
+			if (ret == JFileChooser.APPROVE_OPTION) {
+				File file = mFileChooser.getSelectedFile();
+				open(file);
+			}
+		});
 	};
 
 	/**
