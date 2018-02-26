@@ -45,6 +45,8 @@ public class TinyPad extends JFrame {
 	private JLabel mStatus = new JLabel();
 	private JFileChooser mFileChooser = new JFileChooser("/");
 
+	private File knownFile = null;
+
 	/** Main program, starts the ball rolling. */
 	public static void main(String[] args) {
 
@@ -73,6 +75,7 @@ public class TinyPad extends JFrame {
 				mTextArea.append("\n"); // XXX platform-dependent
 			}
 			setUnsavedChanges(false); // It's now same as on disk
+			knownFile = file;
 			setTitle("TinyPad - " + file.getPath());
 		} catch(IOException e) {
 			JOptionPane.showMessageDialog(this, "Read error: " + e);
@@ -109,6 +112,9 @@ public class TinyPad extends JFrame {
 		JMenuBar myMenuBar = new JMenuBar();
 
 		JMenu fileMenu = new JMenu("File");
+
+		JMenuItem newMenuItem = new JMenuItem("New");
+		newMenuItem.setEnabled(false);
 
 		JMenuItem openMenuItem = new JMenuItem("Open...");
 		openMenuItem.addActionListener(openActionListener);
@@ -259,6 +265,9 @@ public class TinyPad extends JFrame {
 	 *  Allow the user to save a file
 	 */
 	ActionListener saveActionListener = e -> {
+		if (knownFile != null) {
+			mFileChooser.setSelectedFile(knownFile);
+		}
 		// show the save dialog
 		int ret = mFileChooser.showSaveDialog(TinyPad.this);
 
