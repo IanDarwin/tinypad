@@ -18,3 +18,11 @@ The icons are from
 . the _Java Look and Feel Guidelines_ download file _jlfgr.jar_.
 
 As with all free software, use at own risk.
+
+If you want a real, full-functioned window editor (not necessarily written in Java),
+check out
+https://notepad-plus-plus.org/[NotePad++] (free, open-source, MS-Windows only) or
+https://www.textpad.com/[TextPad] (not free; MS-Windows only).
+For Unix/Linux, KDE and GNOME both feature their own window editors,
+and there are others (web search is your friend).
+
