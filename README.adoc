@@ -1,13 +1,17 @@
-= tinypad a tiny Notepad/textpad style editor in Java
+= tinypad: a tiny Notepad/textpad style editor in Java
 
 Well, it all fits in one source file, so you know it isn't going to displace TextPad or NotePad++.
+Not to mention Emacs.
+
+Currently offers a single-window text edit function, with undo/redo capability.
 
 == Origins
 
-Some of this code is adapted from an earlier editor used in the GUI chapter of
+Bits of this code are adapted from an earlier editor ("EzEditor") used in the GUI chapter of
 https://learningtree.com/471[Learning Tree's Introductory Java Course].
+My version is quite a bit more fully fleshed out, and significantly modernized.
 
-The icons are a hodgepodge from 
+The icons are from 
 
 . https://freeiconshop.com/icon/
 . https://findicons.com/
