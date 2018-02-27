@@ -301,6 +301,7 @@ public class TinyPad extends JFrame {
 				throw new IllegalStateException("Unexpected: " + ret);
 			}
 		}
+		// We got here, so run the Runnable.
 		r.run();
 	}
 
