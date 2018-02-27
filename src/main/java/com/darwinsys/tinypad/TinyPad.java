@@ -19,7 +19,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -29,8 +28,6 @@ import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -47,7 +44,6 @@ public class TinyPad extends JFrame {
 	private UndoManager undo = new UndoManager();
 	
 	private JTextArea mTextArea = new JTextArea(40, 70);
-	private JLabel mStatus = new JLabel();
 	private JFileChooser mFileChooser = new JFileChooser("/");
 	private UndoAction undoAction;
 	private RedoAction redoAction;
@@ -135,13 +131,13 @@ public class TinyPad extends JFrame {
 		fileMenu.addSeparator();
 		
 		JMenuItem closeMenuItem = new JMenuItem("Close");
-		closeMenuItem.addActionListener(e-> { 
+		closeMenuItem.addActionListener(e-> {
 			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 		});
 		fileMenu.add(closeMenuItem);
 
 		JMenuItem exitMenuItem = new JMenuItem("Exit");
-		exitMenuItem.addActionListener(e-> { 
+		exitMenuItem.addActionListener(e-> {
 			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 		});
 		fileMenu.add(exitMenuItem);
@@ -171,7 +167,6 @@ public class TinyPad extends JFrame {
 		this.setJMenuBar(myMenuBar);
 		
 		// Get notified when the text is changed.
-		mTextArea.getDocument().addDocumentListener(changeListener);
 		mTextArea.getDocument().addUndoableEditListener(e -> {
 			//Remember the edit and update the menus
 	        undo.addEdit(e.getEdit());
@@ -194,9 +189,6 @@ public class TinyPad extends JFrame {
 		toolBar.add(saveButton);
 
 		add(toolBar, BorderLayout.NORTH);
-		
-		mStatus.setText("TinyPad Ready");
-		add(mStatus, BorderLayout.SOUTH);
 
 		//  Set up mnemonics and accelerators
 		fileMenu.setMnemonic('f');
@@ -237,9 +229,7 @@ public class TinyPad extends JFrame {
 			final boolean canUndo = undo.canUndo();
 			setEnabled(canUndo);
 			putValue(NAME, canUndo ? undo.getUndoPresentationName() : "Undo");
-			if (!canUndo) {
-				setUnsavedChanges(false); // XXX Does this obviate the documentlistener?
-			}
+			setUnsavedChanges(canUndo);
 		}
 	};
 	
@@ -263,24 +253,6 @@ public class TinyPad extends JFrame {
 		}
 	};
 
-	/** The DocumentListener is only used to tell if we have unsaved changes */
-	DocumentListener changeListener = new DocumentListener() {
-		@Override
-		public void insertUpdate(DocumentEvent e) {
-			setUnsavedChanges(true);
-		}
-
-		@Override
-		public void removeUpdate(DocumentEvent e) {
-			setUnsavedChanges(true);
-		}
-
-		@Override
-		public void changedUpdate(DocumentEvent e) {
-			setUnsavedChanges(true);
-		}		
-	};
-
 	/**
 	 * Set saved/unsaved status variable AND titlebar
 	 */
@@ -302,14 +274,14 @@ public class TinyPad extends JFrame {
 	private final static int UNSAVED_OPTION_DISCARD = 1; // index into above
 	
 	/**
-	 *  Check for unsaved changes; if so, prompt. 
+	 *  Check for unsaved changes; if so, prompt.
 	 *  When approved, hide the window, disposes resources, and exit.
 	 */
 	public void doIfNoUnsavedChanges(Runnable r) {
 		if (unsavedChanges) {
-			int ret = JOptionPane.showOptionDialog(TinyPad.this, 
+			int ret = JOptionPane.showOptionDialog(TinyPad.this,
 					"You have unsaved Changes!", "Warning",
-					JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, 
+					JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
 					null, unsavedOptions, unsavedOptions[0]);
 			switch(ret) {
 			case UNSAVED_OPTION_SAVE: // Save
