@@ -14,6 +14,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -30,6 +31,9 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 
 /**
  * Simple text editor.
@@ -40,11 +44,13 @@ public class TinyPad extends JFrame {
 
 	private static final long serialVersionUID = 7333922195749071327L;
 	private boolean unsavedChanges;
+	private UndoManager undo = new UndoManager();
 	
 	private JTextArea mTextArea = new JTextArea(40, 70);
 	private JLabel mStatus = new JLabel();
 	private JFileChooser mFileChooser = new JFileChooser("/");
-
+	private UndoAction undoAction;
+	private RedoAction redoAction;
 	private File knownFile = null;
 
 	/** Main program, starts the ball rolling. */
@@ -72,7 +78,7 @@ public class TinyPad extends JFrame {
 			String line = null;
 			while ((line = is.readLine()) != null) {
 				mTextArea.append(line);
-				mTextArea.append("\n"); // XXX platform-dependent
+				mTextArea.append("\n"); // XXX platform-dependent(?)
 			}
 			setUnsavedChanges(false); // It's now same as on disk
 			knownFile = file;
@@ -88,9 +94,6 @@ public class TinyPad extends JFrame {
 	public TinyPad() {
 
 		setTitle(TinyPad.class.getSimpleName());
-
-		// Get notified when the text is changed.
-		mTextArea.getDocument().addDocumentListener(changeListener);
 
 		Image iconImage = Toolkit.getDefaultToolkit().getImage("/images/Logo.png");
 		setIconImage(iconImage);
@@ -144,7 +147,37 @@ public class TinyPad extends JFrame {
 		fileMenu.add(exitMenuItem);
 
 		myMenuBar.add(fileMenu);
+		
+		JMenu editMenu = new JMenu("Edit");
+		
+		JMenuItem copyItem = new JMenuItem("Copy");
+		editMenu.add(copyItem);
+		JMenuItem cutItem = new JMenuItem("Cut");
+		editMenu.add(cutItem);
+		JMenuItem pasteItem = new JMenuItem("Paste");
+		editMenu.add(pasteItem);
+		
+		myMenuBar.add(editMenu);
+		
+		// Set up Undo/Redo actions
+		undoAction = new UndoAction();
+		editMenu.add(undoAction);
+		undoAction.updateGuiState();
+
+		redoAction = new RedoAction();
+		editMenu.add(redoAction);
+		redoAction.updateGuiState();
+		
 		this.setJMenuBar(myMenuBar);
+		
+		// Get notified when the text is changed.
+		mTextArea.getDocument().addDocumentListener(changeListener);
+		mTextArea.getDocument().addUndoableEditListener(e -> {
+			//Remember the edit and update the menus
+	        undo.addEdit(e.getEdit());
+	        undoAction.updateGuiState();
+	        redoAction.updateGuiState();
+		});
 
 		// Setup the toolbar
 		JToolBar toolBar = new JToolBar();
@@ -184,7 +217,53 @@ public class TinyPad extends JFrame {
 		exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
 		exitMenuItem.setMnemonic('q');
 	}
+	
+	class UndoAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 
+		public void actionPerformed(ActionEvent evt) {
+		    try {
+		        undo.undo();
+		    } catch (CannotUndoException e) {
+		        JOptionPane.showMessageDialog(TinyPad.this, "Unable to undo: " + e, "Error", JOptionPane.ERROR_MESSAGE);
+		        e.printStackTrace();
+		    }
+		    updateGuiState();
+		    redoAction.updateGuiState();
+		}
+
+		/** Could be inlined but must be called from RedoAction so must be a method */
+		void updateGuiState() {
+			final boolean canUndo = undo.canUndo();
+			setEnabled(canUndo);
+			putValue(NAME, canUndo ? undo.getUndoPresentationName() : "Undo");
+			if (!canUndo) {
+				setUnsavedChanges(false); // XXX Does this obviate the documentlistener?
+			}
+		}
+	};
+	
+	class RedoAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		
+		public void actionPerformed(ActionEvent evt) {
+		    try {
+		        undo.redo();
+		    } catch (CannotRedoException e) {
+		    	JOptionPane.showMessageDialog(TinyPad.this, "Unable to redo: " + e, "Error", JOptionPane.ERROR_MESSAGE);
+		        e.printStackTrace();
+		    }
+		    updateGuiState();
+		    undoAction.updateGuiState();
+		}
+
+		void updateGuiState() {
+			setEnabled(undo.canRedo());
+			putValue(NAME, undo.canRedo() ? undo.getRedoPresentationName() : "Redo");
+		}
+	};
+
+	/** The DocumentListener is only used to tell if we have unsaved changes */
 	DocumentListener changeListener = new DocumentListener() {
 		@Override
 		public void insertUpdate(DocumentEvent e) {
