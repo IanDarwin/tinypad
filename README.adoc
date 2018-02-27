@@ -10,6 +10,7 @@ Currently offers a single-window text edit function, with undo/redo capability.
 Bits of this code are adapted from an earlier editor ("EzEditor") used in the GUI chapter of
 https://learningtree.com/471[Learning Tree's Introductory Java Course].
 My version is quite a bit more fully fleshed out, and significantly modernized.
+Very little of the original code remains.
 
 The icons are from 
 
