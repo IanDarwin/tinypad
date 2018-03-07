@@ -39,16 +39,17 @@ import javax.swing.undo.UndoManager;
  * @author Learning Tree Course 471 Development Team - original EzWriter
  */
 public class TinyPad extends JFrame {
-
 	private static final long serialVersionUID = 7333922195749071327L;
-	private boolean unsavedChanges;
-	private UndoManager undo = new UndoManager();
-	
+
+	private boolean mUnsavedChanges;
 	private JTextArea mTextArea = new JTextArea(40, 70);
 	private JFileChooser mFileChooser = new JFileChooser("/");
+	private File mKnownFile = null;
+
+	// Undo/Redo support using built-in Undo Manager
+	private UndoManager mUndoManager = new UndoManager();
 	private UndoAction undoAction;
 	private RedoAction redoAction;
-	private File knownFile = null;
 
 	/** Main program, starts the ball rolling. */
 	public static void main(String[] args) {
@@ -77,8 +78,8 @@ public class TinyPad extends JFrame {
 				mTextArea.append(line);
 				mTextArea.append("\n"); // XXX platform-dependent(?)
 			}
-			setUnsavedChanges(false); // It's now same as on disk
-			knownFile = file;
+			setmUnsavedChanges(false); // It's now same as on disk
+			mKnownFile = file;
 			setTitle("TinyPad - " + file.getPath());
 		} catch(IOException e) {
 			JOptionPane.showMessageDialog(this, "Read error: " + e);
@@ -116,8 +117,8 @@ public class TinyPad extends JFrame {
 		JMenuItem newMenuItem = new JMenuItem("New");
 		newMenuItem.addActionListener(e-> { doIfNoUnsavedChanges(() -> {
 			mTextArea.setText("");
-			knownFile = null;
-			setUnsavedChanges(false);
+			mKnownFile = null;
+			setmUnsavedChanges(false);
 			});
 		});
 		fileMenu.add(newMenuItem);
@@ -187,7 +188,7 @@ public class TinyPad extends JFrame {
 		// Get notified when the text is changed.
 		mTextArea.getDocument().addUndoableEditListener(e -> {
 			//Remember the edit and update the menus
-	        undo.addEdit(e.getEdit());
+	        mUndoManager.addEdit(e.getEdit());
 	        undoAction.updateGuiState();
 	        redoAction.updateGuiState();
 		});
@@ -215,7 +216,7 @@ public class TinyPad extends JFrame {
 
 		public void actionPerformed(ActionEvent evt) {
 		    try {
-		        undo.undo();
+		        mUndoManager.undo();
 		    } catch (CannotUndoException e) {
 		        JOptionPane.showMessageDialog(TinyPad.this, "Unable to undo: " + e, "Error", JOptionPane.ERROR_MESSAGE);
 		        e.printStackTrace();
@@ -226,10 +227,10 @@ public class TinyPad extends JFrame {
 
 		/** Could be inlined but must be called from RedoAction so must be a method */
 		void updateGuiState() {
-			final boolean canUndo = undo.canUndo();
+			final boolean canUndo = mUndoManager.canUndo();
 			setEnabled(canUndo);
-			putValue(NAME, canUndo ? undo.getUndoPresentationName() : "Undo");
-			setUnsavedChanges(canUndo);
+			putValue(NAME, canUndo ? mUndoManager.getUndoPresentationName() : "Undo");
+			setmUnsavedChanges(canUndo);
 		}
 	};
 	
@@ -238,7 +239,7 @@ public class TinyPad extends JFrame {
 		
 		public void actionPerformed(ActionEvent evt) {
 		    try {
-		        undo.redo();
+		        mUndoManager.redo();
 		    } catch (CannotRedoException e) {
 		    	JOptionPane.showMessageDialog(TinyPad.this, "Unable to redo: " + e, "Error", JOptionPane.ERROR_MESSAGE);
 		        e.printStackTrace();
@@ -248,16 +249,16 @@ public class TinyPad extends JFrame {
 		}
 
 		void updateGuiState() {
-			setEnabled(undo.canRedo());
-			putValue(NAME, undo.canRedo() ? undo.getRedoPresentationName() : "Redo");
+			setEnabled(mUndoManager.canRedo());
+			putValue(NAME, mUndoManager.canRedo() ? mUndoManager.getRedoPresentationName() : "Redo");
 		}
 	};
 
 	/**
 	 * Set saved/unsaved status variable AND titlebar
 	 */
-	public void setUnsavedChanges(boolean unsavedChanges) {
-		if (this.unsavedChanges == unsavedChanges) {
+	public void setmUnsavedChanges(boolean unsavedChanges) {
+		if (this.mUnsavedChanges == unsavedChanges) {
 			// Redundant, so just ignore it.
 			return;
 		}
@@ -266,7 +267,7 @@ public class TinyPad extends JFrame {
 		} else {				// Chop unsaved tag
 			setTitle(getTitle().substring(2));
 		}
-		this.unsavedChanges = unsavedChanges;
+		this.mUnsavedChanges = unsavedChanges;
 	}
 
 	private final String[] unsavedOptions = {"Save", "Discard", "Cancel" };
@@ -278,7 +279,7 @@ public class TinyPad extends JFrame {
 	 *  When approved, hide the window, disposes resources, and exit.
 	 */
 	public void doIfNoUnsavedChanges(Runnable r) {
-		if (unsavedChanges) {
+		if (mUnsavedChanges) {
 			int ret = JOptionPane.showOptionDialog(TinyPad.this,
 					"You have unsaved Changes!", "Warning",
 					JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
@@ -286,7 +287,7 @@ public class TinyPad extends JFrame {
 			switch(ret) {
 			case UNSAVED_OPTION_SAVE: // Save
 				saveActionListener.actionPerformed(null);
-				if (unsavedChanges) { // ie., save failed
+				if (mUnsavedChanges) { // ie., save failed
 					return;
 				}
 				break;
@@ -325,8 +326,8 @@ public class TinyPad extends JFrame {
 	 *  Allow the user to save a file
 	 */
 	ActionListener saveActionListener = e -> {
-		if (knownFile != null) {
-			mFileChooser.setSelectedFile(knownFile);
+		if (mKnownFile != null) {
+			mFileChooser.setSelectedFile(mKnownFile);
 		}
 		// show the save dialog
 		int ret = mFileChooser.showSaveDialog(TinyPad.this);
@@ -337,7 +338,7 @@ public class TinyPad extends JFrame {
 
 			try (PrintWriter pout = new PrintWriter(file)) {
 				pout.print(mTextArea.getText());
-				setUnsavedChanges(false);	// changes got written out
+				setmUnsavedChanges(false);	// changes got written out
 			} catch (IOException e1) {
 				JOptionPane.showMessageDialog(this, "Write Failure" + e1, "Error", JOptionPane.ERROR_MESSAGE);
 			}
