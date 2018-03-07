@@ -156,6 +156,8 @@ public class TinyPad extends JFrame {
 		
 		JMenu editMenu = new JMenu("Edit");
 		
+		// Copy/Cut/Paste using built-in support; see
+		// https://docs.oracle.com/javase/tutorial/uiswing/dnd/textpaste.html
 		JMenuItem copyItem = new JMenuItem(new DefaultEditorKit.CopyAction());
 		copyItem.setText("Copy");
 		copyItem.setMnemonic(KeyEvent.VK_C);
