@@ -28,6 +28,7 @@ import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -110,6 +111,7 @@ public class TinyPad extends JFrame {
 		JMenuBar myMenuBar = new JMenuBar();
 
 		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic('f');
 
 		JMenuItem newMenuItem = new JMenuItem("New");
 		newMenuItem.addActionListener(e-> { doIfNoUnsavedChanges(() -> {
@@ -122,10 +124,14 @@ public class TinyPad extends JFrame {
 
 		JMenuItem openMenuItem = new JMenuItem("Open...");
 		openMenuItem.addActionListener(openActionListener);
+		openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+		openMenuItem.setMnemonic('o');
 		fileMenu.add(openMenuItem);
 
 		JMenuItem saveMenuItem = new JMenuItem("Save...");
 		saveMenuItem.addActionListener(saveActionListener);
+		saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		saveMenuItem.setMnemonic('s');
 		fileMenu.add(saveMenuItem);
 
 		fileMenu.addSeparator();
@@ -134,27 +140,37 @@ public class TinyPad extends JFrame {
 		closeMenuItem.addActionListener(e-> {
 			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 		});
+		closeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
+		closeMenuItem.setMnemonic('w');
 		fileMenu.add(closeMenuItem);
 
 		JMenuItem exitMenuItem = new JMenuItem("Exit");
 		exitMenuItem.addActionListener(e-> {
 			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 		});
+		exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+		exitMenuItem.setMnemonic('q');
 		fileMenu.add(exitMenuItem);
 
 		myMenuBar.add(fileMenu);
 		
 		JMenu editMenu = new JMenu("Edit");
 		
-		JMenuItem copyItem = new JMenuItem("Copy");
+		JMenuItem copyItem = new JMenuItem(new DefaultEditorKit.CopyAction());
+		copyItem.setText("Copy");
+		copyItem.setMnemonic(KeyEvent.VK_C);
 		editMenu.add(copyItem);
-		JMenuItem cutItem = new JMenuItem("Cut");
+		JMenuItem cutItem = new JMenuItem(new DefaultEditorKit.CutAction());
+		cutItem.setText("Cut");
+		cutItem.setMnemonic(KeyEvent.VK_X);
 		editMenu.add(cutItem);
-		JMenuItem pasteItem = new JMenuItem("Paste");
+		JMenuItem pasteItem = new JMenuItem(new DefaultEditorKit.PasteAction());
+		pasteItem.setText("Paste");
+		pasteItem.setMnemonic(KeyEvent.VK_V);
 		editMenu.add(pasteItem);
 		
 		myMenuBar.add(editMenu);
-		
+
 		// Set up Undo/Redo actions
 		undoAction = new UndoAction();
 		editMenu.add(undoAction);
@@ -190,24 +206,6 @@ public class TinyPad extends JFrame {
 
 		add(toolBar, BorderLayout.NORTH);
 
-		//  Set up mnemonics and accelerators
-		fileMenu.setMnemonic('f');
-
-		// set-up CTRL-O and CMD-O for open
-		openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
-		openMenuItem.setMnemonic('o');
-
-		// set-up CTRL-S and CMD-S for save
-		saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-		saveMenuItem.setMnemonic('s');
-		
-		// set-up CTRL-W and CMD-W to close one window
-		closeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
-		closeMenuItem.setMnemonic('w');
-
-		// set-up CTRL-Q and CMD-Q for exit
-		exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
-		exitMenuItem.setMnemonic('q');
 	}
 	
 	class UndoAction extends AbstractAction {
