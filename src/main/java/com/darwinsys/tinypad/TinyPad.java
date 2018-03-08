@@ -78,7 +78,8 @@ public class TinyPad extends JFrame {
 				mTextArea.append(line);
 				mTextArea.append("\n"); // XXX platform-dependent(?)
 			}
-			setmUnsavedChanges(false); // It's now same as on disk
+			setUnsavedChanges(false); // It's now same as on disk
+			mUndoManager.discardAllEdits();
 			mKnownFile = file;
 			setTitle("TinyPad - " + file.getPath());
 		} catch(IOException e) {
@@ -118,7 +119,7 @@ public class TinyPad extends JFrame {
 		newMenuItem.addActionListener(e-> { doIfNoUnsavedChanges(() -> {
 			mTextArea.setText("");
 			mKnownFile = null;
-			setmUnsavedChanges(false);
+			setUnsavedChanges(false);
 			});
 		});
 		fileMenu.add(newMenuItem);
@@ -230,7 +231,7 @@ public class TinyPad extends JFrame {
 			final boolean canUndo = mUndoManager.canUndo();
 			setEnabled(canUndo);
 			putValue(NAME, canUndo ? mUndoManager.getUndoPresentationName() : "Undo");
-			setmUnsavedChanges(canUndo);
+			setUnsavedChanges(canUndo);
 		}
 	};
 	
@@ -257,7 +258,7 @@ public class TinyPad extends JFrame {
 	/**
 	 * Set saved/unsaved status variable AND titlebar
 	 */
-	public void setmUnsavedChanges(boolean unsavedChanges) {
+	public void setUnsavedChanges(boolean unsavedChanges) {
 		if (this.mUnsavedChanges == unsavedChanges) {
 			// Redundant, so just ignore it.
 			return;
@@ -338,7 +339,7 @@ public class TinyPad extends JFrame {
 
 			try (PrintWriter pout = new PrintWriter(file)) {
 				pout.print(mTextArea.getText());
-				setmUnsavedChanges(false);	// changes got written out
+				setUnsavedChanges(false);	// changes got written out
 			} catch (IOException e1) {
 				JOptionPane.showMessageDialog(this, "Write Failure" + e1, "Error", JOptionPane.ERROR_MESSAGE);
 			}
