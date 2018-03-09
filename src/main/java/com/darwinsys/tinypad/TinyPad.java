@@ -105,7 +105,7 @@ public class TinyPad extends JFrame {
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
+				doWhenNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 			}
 		});
 
@@ -116,7 +116,7 @@ public class TinyPad extends JFrame {
 		fileMenu.setMnemonic('f');
 
 		JMenuItem newMenuItem = new JMenuItem("New");
-		newMenuItem.addActionListener(e-> { doIfNoUnsavedChanges(() -> {
+		newMenuItem.addActionListener(e-> { doWhenNoUnsavedChanges(() -> {
 			mTextArea.setText("");
 			mKnownFile = null;
 			setUnsavedChanges(false);
@@ -140,7 +140,7 @@ public class TinyPad extends JFrame {
 		
 		JMenuItem closeMenuItem = new JMenuItem("Close");
 		closeMenuItem.addActionListener(e-> {
-			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
+			doWhenNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 		});
 		closeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
 		closeMenuItem.setMnemonic('w');
@@ -148,7 +148,7 @@ public class TinyPad extends JFrame {
 
 		JMenuItem exitMenuItem = new JMenuItem("Exit");
 		exitMenuItem.addActionListener(e-> {
-			doIfNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
+			doWhenNoUnsavedChanges(() -> { setVisible(false); dispose(); System.exit(0); });
 		});
 		exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
 		exitMenuItem.setMnemonic('q');
@@ -277,9 +277,9 @@ public class TinyPad extends JFrame {
 	
 	/**
 	 *  Check for unsaved changes; if so, prompt.
-	 *  When approved, hide the window, disposes resources, and exit.
+	 *  When approved, perform the action passed in.
 	 */
-	public void doIfNoUnsavedChanges(Runnable r) {
+	public void doWhenNoUnsavedChanges(Runnable r) {
 		if (mUnsavedChanges) {
 			int ret = JOptionPane.showOptionDialog(TinyPad.this,
 					"You have unsaved Changes!", "Warning",
@@ -311,7 +311,7 @@ public class TinyPad extends JFrame {
 	 *  This code allows the user to select a file.
 	 */
 	ActionListener openActionListener = (e) -> {
-		doIfNoUnsavedChanges(() -> {
+		doWhenNoUnsavedChanges(() -> {
 			// show the open dialog
 			int ret = mFileChooser.showOpenDialog(TinyPad.this);
 
