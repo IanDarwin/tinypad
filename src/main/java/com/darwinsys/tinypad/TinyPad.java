@@ -43,7 +43,8 @@ public class TinyPad extends JFrame {
 
 	private boolean mUnsavedChanges;
 	private JTextArea mTextArea = new JTextArea(40, 70);
-	private JFileChooser mFileChooser = new JFileChooser("/");
+	private String tilde = System.getenv("user.home");
+	private JFileChooser mFileChooser = new JFileChooser(tilde);
 	private File mKnownFile = null;
 
 	// Undo/Redo support using built-in Undo Manager
